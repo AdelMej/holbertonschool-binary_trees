@@ -9,7 +9,7 @@ BUILD = build
 MAIN_BIN = $(BUILD)/mylib
 TEST_BINS = $(patsubst tests/%.c, $(BUILD)/%, $(TESTS))
 
-.PHONY: all clean test run-tests run-%
+.PHONY: all clean test run-tests run-% help
 
 all: $(MAIN_BIN) test
 
@@ -47,6 +47,13 @@ run-%: $(BUILD)/%
 # Create build dir
 $(BUILD):
 	mkdir -p $(BUILD)
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Build all binaries"
+	@echo "  clean  - Remove build files"
+	@echo "  test   - Run unit tests"
+	@echo "  doom   - Unleash Segfault City (WARNING: may cause chaos!)"
 
 clean:
 	rm -rf $(BUILD)
