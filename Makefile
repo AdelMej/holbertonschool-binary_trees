@@ -53,7 +53,7 @@ help:
 	@echo "  all    - Build all binaries"
 	@echo "  clean  - Remove build files"
 	@echo "  test   - Run unit tests"
-	@echo "  doom   - Unleash Segfault City (WARNING: may cause chaos!)"
+	@echo "  run-%  - Run a specific test"	@echo "
 
 clean:
 	rm -rf $(BUILD)
