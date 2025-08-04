@@ -1,2 +1,1 @@
-# Empty for now
-	- enjoy the show
+# This is empty for now :p
