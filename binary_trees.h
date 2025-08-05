@@ -1,12 +1,7 @@
-#ifndef binary_trees_h
-#define binary_trees_h
+#ifndef MY_BINARY_TREES_H
+#define MY_BINARY_TREES_H
 
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-/* Data structures */
 
 /**
  * struct binary_tree_s - Binary tree node
@@ -17,35 +12,34 @@
  */
 struct binary_tree_s
 {
-	int n;
-	struct binary_tree_s *parent;
-	struct binary_tree_s *left;
-	struct binary_tree_s *right;
+    int n;
+    struct binary_tree_s *parent;
+    struct binary_tree_s *left;
+    struct binary_tree_s *right;
 };
+
+/* typedefs */
 typedef struct binary_tree_s binary_tree_t;
 typedef struct binary_tree_s bst_t;
 typedef struct binary_tree_s avl_t;
 typedef struct binary_tree_s heap_t;
-
-/**
- * struct levelorder_queue_s - Level order traversal queue.
- * @node: A node of a binary tree.
- * @next: The next node to traverse to in the binary tree.
- */
-typedef struct levelorder_queue_s
-{
-	binary_tree_t *node;
-	struct levelorder_queue_s *next;
-} levelorder_queue_t;
-
-/* Printing helper function */
-void binary_tree_print(const binary_tree_t *);
-
-/* Task function prototypes */
+/* --- constructor --- */
 binary_tree_t *binary_tree_node(binary_tree_t *parent, int value);
+
+/* --- binary trees utilities --- */
+void binary_tree_print(const binary_tree_t *);
 binary_tree_t *binary_tree_insert_left(binary_tree_t *parent, int value);
 binary_tree_t *binary_tree_insert_right(binary_tree_t *parent, int value);
-
+void binary_tree_delete(binary_tree_t *tree);
 int binary_tree_is_leaf(const binary_tree_t *node);
+int binary_tree_is_root(const binary_tree_t *node);
 
-#endif /* binary_trees_h */
+/* --- traversal functions --- */
+void binary_tree_preorder(const binary_tree_t *tree, void (*func)(int));
+void binary_tree_inorder(const binary_tree_t *tree, void (*func)(int));
+void binary_tree_postorder(const binary_tree_t *tree, void (*func)(int));
+
+/* --- size, heigth, depth --- */
+size_t binary_tree_height(const binary_tree_t *tree);
+
+#endif /* MY_BINARY_TREES_H */

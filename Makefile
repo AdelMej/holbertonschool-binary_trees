@@ -1,26 +1,28 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu89 -Iunity
-
-SRC = $(wildcard *.c)
-UNITY_SRC = unity/unity.c
-TESTS = $(wildcard tests/test_*.c)
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu89 -IUnity
+UNITY_CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -IUnity
 
 BUILD = build
-MAIN_BIN = $(BUILD)/mylib
-TEST_BINS = $(patsubst tests/%.c, $(BUILD)/%, $(TESTS))
 
-.PHONY: all clean test run-tests run-%
+MAIN_SRCS = $(wildcard *-main.c)
+MAIN_BINS = $(patsubst %.c, $(BUILD)/%, $(MAIN_SRCS))
 
-all: $(MAIN_BIN) test
+SRC_ALL = $(wildcard *.c)
+SRC = $(filter-out %-main.c, $(SRC_ALL))
+UNITY_SRC = Unity/unity.c
+TESTS = $(wildcard tests/test_*.c)
+TEST_BINS = $(strip $(patsubst tests/%.c, $(BUILD)/%, $(TESTS)))
 
-# Always build your main binary from *.c
-$(MAIN_BIN): $(SRC) | $(BUILD)
+.PHONY: all clean test run-tests run-% help
+
+all: $(MAIN_BINS) test
+
+$(BUILD)/%: %.c $(SRC) | $(BUILD)
 	$(CC) $(CFLAGS) $^ -o $@
 
-# Run tests if they exist
 test:
 	@if [ -z "$(TESTS)" ]; then \
-		echo "⚠️  No test files found. Only built main binary."; \
+		echo "⚠️  No test files found. Only built main binaries."; \
 	else \
 		$(MAKE) run-tests; \
 	fi
@@ -36,17 +38,28 @@ run-tests: $(TEST_BINS)
 		fi; \
 	done
 
-# Build individual test binaries
 $(BUILD)/%: tests/%.c $(SRC) $(UNITY_SRC) | $(BUILD)
-	$(CC) $(CFLAGS) $^ -o $@
+	@echo "Building test binary for $< -> $@"
+	$(CC) $(UNITY_CFLAGS) $^ -o $@
 
-# Run a single test
 run-%: $(BUILD)/%
 	./$<
 
-# Create build dir
 $(BUILD):
 	mkdir -p $(BUILD)
 
 clean:
 	rm -rf $(BUILD)
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Build all binaries"
+	@echo "  clean  - Remove build files"
+	@echo "  test   - Run unit tests"
+	@echo "  run-%  - Run a specific test"
+
+debug:
+	@echo "SRC = $(SRC)"
+	@echo "TESTS = $(TESTS)"
+	@echo "TEST_BINS=[$(TEST_BINS)]"
+
