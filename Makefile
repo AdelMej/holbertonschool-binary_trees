@@ -3,12 +3,15 @@ CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu89 -IUnity
 UNITY_CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -IUnity
 
 BUILD = build
+OBJDIR = obj
 
 MAIN_SRCS = $(wildcard *-main.c)
 MAIN_BINS = $(patsubst %.c, $(BUILD)/%, $(MAIN_SRCS))
 
 SRC_ALL = $(wildcard *.c)
 SRC = $(filter-out %-main.c, $(SRC_ALL))
+OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(SRC))
+UNITY_OBJ = $(OBJDIR)/unity.o
 UNITY_SRC = Unity/unity.c
 TESTS = $(wildcard tests/test_*.c)
 TEST_BINS = $(strip $(patsubst tests/%.c, $(BUILD)/%, $(TESTS)))
@@ -17,8 +20,6 @@ TEST_BINS = $(strip $(patsubst tests/%.c, $(BUILD)/%, $(TESTS)))
 
 all: $(MAIN_BINS) test
 
-$(BUILD)/%: %.c $(SRC) | $(BUILD)
-	$(CC) $(CFLAGS) $^ -o $@
 
 test:
 	@if [ -z "$(TESTS)" ]; then \
@@ -38,18 +39,37 @@ run-tests: $(TEST_BINS)
 		fi; \
 	done
 
-$(BUILD)/%: tests/%.c $(SRC) $(UNITY_SRC) | $(BUILD)
-	@echo "Building test binary for $< -> $@"
+#generating binaries for mains
+$(BUILD)/%: %.c $(OBJS) | $(BUILD)
+	$(CC) $(CFLAGS) $^ -o $@
+
+# build test binaries
+$(BUILD)/%: tests/%.c $(OBJS) $(UNITY_OBJ) | $(BUILD)
 	$(CC) $(UNITY_CFLAGS) $^ -o $@
 
+#generating .o files for unity
+$(UNITY_OBJ): $(UNITY_SRC) | $(OBJDIR)
+	$(CC) $(UNITY_CFLAGS) -c $< -o $@
+
+#generating .o files for mains
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#sepecific test run
 run-%: $(BUILD)/%
 	./$<
 
+#create a obj directory if it doesn't exist
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+#create build directory if it doesn't exist
 $(BUILD):
 	mkdir -p $(BUILD)
 
+#delete the binary directory if it doesn't exist
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) $(OBJDIR)
 
 help:
 	@echo "Available targets:"
