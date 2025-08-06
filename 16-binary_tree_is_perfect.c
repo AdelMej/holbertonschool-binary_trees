@@ -37,7 +37,8 @@ binary_tree_is_perfect(tree->right));
 }
 
 /**
-* binary_tree_height - a function that returns the heigh of the binary tree
+* binary_tree_height_helper - a function that returns
+* the heigh of the binary tree
 * @tree: the root of the binary tree
 *
 * Return: 0 if NULL or a leaf
