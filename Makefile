@@ -1,26 +1,29 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu89 -Iunity
-
-SRC = $(wildcard *.c)
-UNITY_SRC = unity/unity.c
-TESTS = $(wildcard tests/test_*.c)
+CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu89 -IUnity
+UNITY_CFLAGS = -Wall -Wextra -Werror -pedantic -std=gnu99 -IUnity
 
 BUILD = build
-MAIN_BIN = $(BUILD)/mylib
-TEST_BINS = $(patsubst tests/%.c, $(BUILD)/%, $(TESTS))
+OBJDIR = obj
 
-.PHONY: all clean test run-tests run-%
+MAIN_SRCS = $(wildcard *-main.c)
+MAIN_BINS = $(patsubst %.c, $(BUILD)/%, $(MAIN_SRCS))
 
-all: $(MAIN_BIN) test
+SRC_ALL = $(wildcard *.c)
+SRC = $(filter-out %-main.c, $(SRC_ALL))
+OBJS = $(patsubst %.c, $(OBJDIR)/%.o, $(SRC))
+UNITY_OBJ = $(OBJDIR)/unity.o
+UNITY_SRC = Unity/unity.c
+TESTS = $(wildcard tests/test_*.c)
+TEST_BINS = $(strip $(patsubst tests/%.c, $(BUILD)/%, $(TESTS)))
 
-# Always build your main binary from *.c
-$(MAIN_BIN): $(SRC) | $(BUILD)
-	$(CC) $(CFLAGS) $^ -o $@
+.PHONY: all clean test run-tests run-% help
 
-# Run tests if they exist
+all: $(MAIN_BINS) test
+
+
 test:
 	@if [ -z "$(TESTS)" ]; then \
-		echo "⚠️  No test files found. Only built main binary."; \
+		echo "⚠️  No test files found. Only built main binaries."; \
 	else \
 		$(MAKE) run-tests; \
 	fi
@@ -36,17 +39,47 @@ run-tests: $(TEST_BINS)
 		fi; \
 	done
 
-# Build individual test binaries
-$(BUILD)/%: tests/%.c $(SRC) $(UNITY_SRC) | $(BUILD)
+#generating binaries for mains
+$(BUILD)/%: %.c $(OBJS) | $(BUILD)
 	$(CC) $(CFLAGS) $^ -o $@
 
-# Run a single test
+# build test binaries
+$(BUILD)/%: tests/%.c $(OBJS) $(UNITY_OBJ) | $(BUILD)
+	$(CC) $(UNITY_CFLAGS) $^ -o $@
+
+#generating .o files for unity
+$(UNITY_OBJ): $(UNITY_SRC) | $(OBJDIR)
+	$(CC) $(UNITY_CFLAGS) -c $< -o $@
+
+#generating .o files for mains
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#sepecific test run
 run-%: $(BUILD)/%
 	./$<
 
-# Create build dir
+#create a obj directory if it doesn't exist
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+#create build directory if it doesn't exist
 $(BUILD):
 	mkdir -p $(BUILD)
 
+#delete the binary directory if it doesn't exist
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) $(OBJDIR)
+
+help:
+	@echo "Available targets:"
+	@echo "  all    - Build all binaries"
+	@echo "  clean  - Remove build files"
+	@echo "  test   - Run unit tests"
+	@echo "  run-%  - Run a specific test"
+
+debug:
+	@echo "SRC = $(SRC)"
+	@echo "TESTS = $(TESTS)"
+	@echo "TEST_BINS=[$(TEST_BINS)]"
+
