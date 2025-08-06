@@ -63,6 +63,13 @@ void test_missing_parent(void)
 	TEST_ASSERT_NULL(binary_tree_sibling(root));
 }
 
+void test_single_node(void)
+{
+	binary_tree_delete(root);
+	root = binary_tree_node(NULL, 1);
+	binary_tree_print(root);
+	TEST_ASSERT_NULL(binary_tree_sibling(root));
+}
 int main(void) {
     UNITY_BEGIN();
 	RUN_TEST(test_is_sibling_left);
@@ -71,5 +78,6 @@ int main(void) {
 	RUN_TEST(test_is_misisng_sibling_right);
 	RUN_TEST(test_is_null);
 	RUN_TEST(test_missing_parent);
+	RUN_TEST(test_single_node);
     return UNITY_END();
 }
